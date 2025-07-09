@@ -46,12 +46,14 @@ async def DownloadPdf(pareKey=None, fileds=None):
         result = await execute_stored_procedure(
             proc_name="get_table_view", params=[pareKey]
         )
-        user_data = Customdata(result[0])
         replace_map = {"staff_id": "staff_name", "customer_id": "customer_name"}
-        updated_list = [replace_map.get(field, field) for field in fileds]
-        fields = [field for field in user_data.to_fields() if field in updated_list]
-        returnFile = await pdf_convert(datas=user_data.to_json(), fields=fields)
+        preferred_order = [replace_map.get(field, field) for field in fileds]
+        user_data = Customdata(result[0])
+        available_fields = user_data.to_fields()
+        final_fields = [field for field in preferred_order if field in available_fields]
+        returnFile = await pdf_convert(datas=user_data.to_json(), fields=final_fields)
         return returnFile
+    
     except Exception as error:
         raise Exception(str(error)) from error
 
